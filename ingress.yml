@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1 
+kind: Ingress
+metadata:
+  name: microservice-ingress
+  annotations:
+    # Ingress Core Settings
+    alb.ingress.kubernetes.io/load-balancer-name: change-ingress   
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Health Check Settings
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP 
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '15'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:035328825705:certificate/8065beb1-526f-4a26-ae19-59e848b08a58 
+    #alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-1-2017-01 #Optional (Picks default if not used)    
+    # SSL Redirect Setting
+    alb.ingress.kubernetes.io/ssl-redirect: '443' 
+    # External DNS - For creating a Record Set in Route53
+    external-dns.alpha.kubernetes.io/hostname: microservice.internjk.net     
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api/currency-exchange-microservice 
+            pathType: Prefix
+            backend:
+              service:
+                name: exchange-api
+                port:
+                  number: 8000
+          - path: /api/currency-conversion-microservice
+            pathType: Prefix
+            backend:
+              service:
+                name: conversion-deployment
+                port:
+                  number: 8100                  
+# Important Note-1: In path based routing order is very important, if we are going to use  "/*", try to use it at the end of all rules.         
+

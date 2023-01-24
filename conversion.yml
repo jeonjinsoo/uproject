@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conversion-deployment
+  labels:
+    app: conversion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conversion
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: conversion
+    spec:
+      containers:
+        - name: conversion
+          image: in28min/aws-currency-conversion-service-xray:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 8100
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "500Mi"
+              cpu: "200m"  
+          env:
+            - name: CURRENCY_EXCHANGE_URI
+              value: http://exchange-api:8000
+            - name: AWS_XRAY_TRACING_NAME 
+              value: "conversion-deployment"                
+            - name: AWS_XRAY_DAEMON_ADDRESS
+              value: "xray-service.default:2000"    
+            - name: AWS_XRAY_CONTEXT_MISSING 
+              value: "LOG_ERROR"

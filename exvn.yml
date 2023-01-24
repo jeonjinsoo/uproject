@@ -1,0 +1,29 @@
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: exchange
+  namespace: prod
+spec:
+  awsName: currency-exchange-service-vn
+  podSelector:
+    matchLabels:
+      app: exchange
+  listeners:
+    - portMapping:
+        port: 8000
+        protocol: http
+  serviceDiscovery:
+    dns:
+      hostname: exchange.prod.svc.cluster.local
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: exchange
+  namespace: prod
+spec:
+  awsName: exchange
+  provider:
+    virtualNode:
+      virtualNodeRef:
+        name: exchange
